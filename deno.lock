@@ -2,7 +2,12 @@
   "version": "5",
   "specifiers": {
     "jsr:@std/assert@1": "1.0.15",
+    "jsr:@std/assert@^1.0.14": "1.0.15",
+    "jsr:@std/expect@*": "1.0.17",
+    "jsr:@std/expect@^1.0.17": "1.0.17",
+    "jsr:@std/internal@^1.0.10": "1.0.12",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "npm:moo@~0.5.2": "0.5.2",
     "npm:ts-proto@^2.7.7": "2.7.7",
     "npm:zod-to-x@*": "2.0.1_zod@3.25.49",
     "npm:zod-to-x@^2.0.1": "2.0.1_zod@3.25.49",
@@ -12,7 +17,14 @@
     "@std/assert@1.0.15": {
       "integrity": "d64018e951dbdfab9777335ecdb000c0b4e3df036984083be219ce5941e4703b",
       "dependencies": [
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.12"
+      ]
+    },
+    "@std/expect@1.0.17": {
+      "integrity": "316b47dd65c33e3151344eb3267bf42efba17d1415425f07ed96185d67fc04d9",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.14",
+        "jsr:@std/internal@^1.0.10"
       ]
     },
     "@std/internal@1.0.12": {
@@ -38,6 +50,9 @@
       "dependencies": [
         "detect-libc"
       ]
+    },
+    "moo@0.5.2": {
+      "integrity": "sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q=="
     },
     "ts-poet@6.12.0": {
       "integrity": "sha512-xo+iRNMWqyvXpFTaOAvLPA5QAWO6TZrSUs5s4Odaya3epqofBu/fMLHEWl8jPmjhA0s9sgj9sNvF1BmaQlmQkA==",
@@ -78,6 +93,8 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1",
+      "jsr:@std/expect@^1.0.17",
+      "npm:moo@~0.5.2",
       "npm:ts-proto@^2.7.7",
       "npm:zod-to-x@^2.0.1",
       "npm:zod@^4.1.12"

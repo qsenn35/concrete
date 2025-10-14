@@ -1,0 +1,5 @@
+schema Basic {
+  num: (number);
+  str: (string);
+  boolean: (boolean);
+}

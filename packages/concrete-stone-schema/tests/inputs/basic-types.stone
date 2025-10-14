@@ -1,0 +1,11 @@
+type basicNum (
+  number,
+)
+
+type basicString (
+  string,
+)
+
+type basicBoolean (
+  boolean,
+)

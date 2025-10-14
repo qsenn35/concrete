@@ -1,0 +1,15 @@
+type positiveNum (
+  number,
+  min(1),
+)
+
+type twoDigitNum (
+  number,
+  max(99),
+)
+
+type rangeNum (
+  number,
+  min(1),
+  max(1000),
+)

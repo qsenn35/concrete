@@ -1,0 +1,15 @@
+type noEmptyString (
+  string,
+  minLength(1),
+)
+
+type maxLengthString (
+  string,
+  maxLength(15),
+)
+
+type rangeLengthString (
+  string,
+  minLength(3),
+  maxLength(15),
+)
