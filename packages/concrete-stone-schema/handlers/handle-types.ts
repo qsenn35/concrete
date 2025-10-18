@@ -5,6 +5,7 @@ import {
   FormatLexerResult,
   StateMachineStepHandler,
 } from "../types.ts";
+import { createZodObject } from "./create-zod-schemas.ts";
 import { handleBlock } from "./handle-blocks.ts";
 
 const handleIdentifier = (
@@ -80,5 +81,8 @@ export function handleTypeDef(lexer: MooLexer) {
     },
   };
 
-  return handleBlock(lexer, block, stateMachine) as TypeDefContext;
+  const typeBlock = handleBlock(lexer, block, stateMachine) as TypeDefContext;
+  const zodType = createZodObject(typeBlock);
+
+  return zodType;
 }

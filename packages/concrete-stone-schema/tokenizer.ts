@@ -1,8 +1,8 @@
-import { createZodSchemas } from "../create-zod-schemas.ts";
+import { ZodObject } from "zod/v4";
 import { handleSchemaDef } from "./handlers/handle-schema.ts";
 import { handleTypeDef } from "./handlers/handle-types.ts";
 import { lexer } from "./lexer.ts";
-import { LexerContext, SchemaDefBlock } from "./types.ts";
+import { LexerContext } from "./types.ts";
 
 export function tokenize(input: string) {
   lexer.reset(input);
@@ -20,44 +20,38 @@ export function tokenize(input: string) {
 
     if (token.type === "type_def") {
       const typeResult = handleTypeDef(lexer);
-
-      if (typeResult && typeResult.name) {
-        ctx.types[typeResult.name] = typeResult;
-        continue;
-      } else {
-        throw new Error("Failed to parse token of type 'type_def'");
-      }
     }
 
     if (token.type === "schema_def") {
-      const schemaResult: SchemaDefBlock = handleSchemaDef(lexer);
+      const schemaResult = handleSchemaDef(lexer) as ZodObject;
 
-      if (schemaResult && schemaResult.name) {
-        ctx.schemas[schemaResult.name] = schemaResult;
-      } else {
-        throw new Error("Failed to parse token of type 'schema_def'");
+      for (const prop in schemaResult.def.shape) {
+        const obj = schemaResult.def.shape[prop];
+        console.log(prop, obj);
       }
     }
   }
-
-  const zodSchemas = createZodSchemas(ctx);
-
-  return zodSchemas;
 }
 
 tokenize(`
-  type customType (
-    string,
-    min(3),
-    max(10),
-    default('my custom type!'),
-  )
+  type customString (string, min(1), max(255));
 
-  schema Basic {
-    someProp: (customType);
+  schema BasicWithNested {
+    someProp: (customString);
 
-    :@nested {
-      nestedProp: (string);
+    :nested {
+      someNestedProp: (string);
+    }
+  }
+
+  schema BasicWithDeeplyNested {
+    someProp: (customString, min(2), max(255));
+
+    :nested {
+      someNestedProp: (string);
+      :deeplyNested {
+        someDeepProp: (customString);
+      }
     }
   }
 `);

@@ -46,7 +46,8 @@ export const lexer = moo.compile({
     match: /[a-zA-Z_][a-zA-Z0-9_]*:/,
     value: (x: string) => x.substring(0, x.length - 1),
   },
-  identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
+  nested_schema_identifier: /:[a-zA-Z_][a-zA-Z0-9_]*/,
+  identifier: /[a-zA-Z_][a-zA-Z0-9_]+/,
 
   // Regex literals (no capture groups)
   regex: {

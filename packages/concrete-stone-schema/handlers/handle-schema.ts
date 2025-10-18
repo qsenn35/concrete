@@ -1,11 +1,55 @@
+import { ZodObject } from "zod/v4";
 import {
   MooLexer,
   StateMachine,
   SchemaDefBlock,
   FormatLexerResult,
   StateMachineStepHandler,
+  TypeDefContext,
 } from "../types.ts";
+import { createZodObject } from "./create-zod-schemas.ts";
 import { handleBlock } from "./handle-blocks.ts";
+
+function setByPath<T extends Record<string, any>>(
+  obj: T,
+  path: string,
+  value: any
+): T {
+  const keys = path.split(".");
+  let current: Record<string, any> = obj;
+
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (
+      !(key in current) ||
+      typeof current[key] !== "object" ||
+      current[key] === null
+    ) {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+
+  current[keys[keys.length - 1]] = value;
+  return obj;
+}
+
+function getByPath<T extends Record<string, any>, R = any>(
+  obj: T,
+  path: string
+): R | undefined {
+  const keys = path.split(".");
+  let current: any = obj;
+
+  for (const key of keys) {
+    if (current == null || typeof current !== "object" || !(key in current)) {
+      return undefined;
+    }
+    current = current[key];
+  }
+
+  return current as R;
+}
 
 function handlePropIdentifier(
   state: StateMachine["state"],
@@ -26,16 +70,18 @@ function handlePropIdentifier(
     };
   } else {
     const scopeProp = prop as string;
-    const scope = block.scopes[state.last_nested as string];
-    scope.props[scopeProp as string] = {
+
+    setByPath(block, `${state.last_nested}.props.${scopeProp}` as string, {
       category: "type",
       name: scopeProp,
       descriptors: [],
       formats: [],
-    };
+    });
   }
 
   state.last_property = prop;
+
+  return true;
 }
 
 function handleIdentifier(
@@ -45,18 +91,22 @@ function handleIdentifier(
 ) {
   if (!block.name) {
     block.name = value;
-    return;
+    return true;
   }
 
   const { last_property, last_nested } = state;
 
   if ((last_property as string) && !last_nested) {
-    block.props[last_property as string].descriptors.push(value);
+    const prop = block.props[last_property as string] as TypeDefContext;
+    prop.descriptors = [...prop.descriptors, value];
   } else if (last_property && last_nested) {
-    block.scopes[last_nested as string].props[
-      last_property as string
-    ].descriptors.push(value);
+    const fullPath = `${last_nested}.props.${last_property}.descriptors`;
+    const currentDescriptors = getByPath(block, fullPath);
+
+    setByPath(block, fullPath, [...(currentDescriptors || []), value]);
   }
+
+  return true;
 }
 
 function handlePropDirective(
@@ -68,7 +118,35 @@ function handlePropDirective(
   block.scopes[scope] = {
     props: {},
   };
-  state.last_nested = scope;
+  state.last_nested = `scopes.${scope}`;
+
+  return true;
+}
+
+function handleNestedSchema(
+  state: StateMachine["state"],
+  block: SchemaDefBlock,
+  value: string
+) {
+  if (state.last_nested) {
+    setByPath(block, `${state.last_nested}.props.${value}`, {
+      category: "schema",
+      name: "value",
+      props: {},
+      scopes: {},
+    });
+
+    state.last_nested = `${state.last_nested}.props.${value}`;
+
+    return true;
+  }
+
+  block.props[value] = {
+    props: {},
+  } as SchemaDefBlock;
+  state.last_nested = `props.${value}`;
+
+  return true;
 }
 
 function handleFormat(
@@ -80,10 +158,15 @@ function handleFormat(
   const lastNested = state.last_nested as string;
 
   if (lastProp && !lastNested) {
-    block.props[lastProp].formats.push(value);
+    const prop = block.props[lastProp] as TypeDefContext;
+
+    prop.formats = [...prop.formats, value];
   } else if (lastProp && lastNested) {
-    block.scopes[lastNested].props[lastProp].formats.push(value);
+    const prop = block.scopes[lastNested].props[lastProp] as TypeDefContext;
+    prop.formats.push(value);
   }
+
+  return true;
 }
 
 function handleCloseCurly(
@@ -91,8 +174,14 @@ function handleCloseCurly(
   _block: SchemaDefBlock,
   _value: string
 ) {
+  if (!state.last_nested) {
+    return false;
+  }
+
   if (state.last_nested) state.last_nested = undefined;
   if (state.last_property) state.last_property = undefined;
+
+  return true;
 }
 
 export function handleSchemaDef(lexer: MooLexer) {
@@ -117,11 +206,11 @@ export function handleSchemaDef(lexer: MooLexer) {
         next: ["identifier"],
       },
       open_curly: {
-        next: ["prop_identifier"],
+        next: ["prop_identifier", "nested_schema_identifier"],
       },
       close_curly: {
         handler: handleCloseCurly,
-        next: ["prop_identifier", "end_line"],
+        next: ["prop_identifier", "nested_schema_identifier", "end_line"],
       },
       open_paren: {
         next: ["identifier", "format"],
@@ -130,7 +219,12 @@ export function handleSchemaDef(lexer: MooLexer) {
         next: ["end_line"],
       },
       end_line: {
-        next: ["prop_identifier", "prop_directive", "close_curly"],
+        next: [
+          "prop_identifier",
+          "nested_schema_identifier",
+          "prop_directive",
+          "close_curly",
+        ],
       },
       format: {
         handler: handleFormat,
@@ -148,6 +242,10 @@ export function handleSchemaDef(lexer: MooLexer) {
         handler: handlePropDirective,
         next: ["identifier"],
       },
+      nested_schema_identifier: {
+        handler: handleNestedSchema,
+        next: ["open_curly"],
+      },
       punctuation: {
         next: ["identifier"],
       },
@@ -157,5 +255,8 @@ export function handleSchemaDef(lexer: MooLexer) {
     },
   };
 
-  return handleBlock(lexer, block, stateMachine) as SchemaDefBlock;
+  const schemaBlock = handleBlock(lexer, block, stateMachine) as SchemaDefBlock;
+  const zodSchema = createZodObject(schemaBlock);
+
+  return zodSchema;
 }

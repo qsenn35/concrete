@@ -6,13 +6,16 @@ export function handleBlock<TBlockType = BlockType, TValue = string>(
   stateMachine: StateMachine<TBlockType, TValue>
 ) {
   let token: MooLexerResult | undefined = lexer.next();
+  let continueLoop = true;
+
   while (
+    continueLoop &&
     stateMachine.steps[stateMachine.current]?.next &&
     stateMachine.steps[stateMachine.current]?.next?.length
   ) {
     const currentStep = stateMachine.steps[stateMachine.current];
     if (stateMachine.current === token?.type && currentStep?.handler) {
-      currentStep.handler(
+      continueLoop = currentStep.handler(
         stateMachine.state,
         block as TBlockType,
         token.value as TValue
@@ -31,6 +34,5 @@ export function handleBlock<TBlockType = BlockType, TValue = string>(
     const nextStep = stateMachine.steps[stateMachine.current];
     if (!nextStep) break;
   }
-
   return block;
 }

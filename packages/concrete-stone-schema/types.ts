@@ -41,12 +41,12 @@ export type TypeFormHandler = (
 
 export interface SchemaDefBlock extends DefaultDefBlock {
   props: {
-    [prop: string]: TypeDefContext;
+    [prop: string]: TypeDefContext | SchemaDefBlock;
   };
   scopes: {
     [scope: string]: {
       props: {
-        [prop: string]: TypeDefContext;
+        [prop: string]: TypeDefContext | SchemaDefBlock;
       };
     };
   };
