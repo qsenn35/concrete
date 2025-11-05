@@ -3,26 +3,23 @@ import { BlockType, MooLexer, MooLexerResult, StateMachine } from "../types.ts";
 export function handleBlock<TBlockType = BlockType, TValue = string>(
   lexer: MooLexer,
   block: BlockType,
-  stateMachine: StateMachine<TBlockType, TValue>
+  stateMachine: StateMachine<TBlockType, TValue>,
 ) {
   let token: MooLexerResult | undefined = lexer.next();
   let continueLoop = true;
 
-  while (
-    continueLoop &&
-    stateMachine.steps[stateMachine.current]?.next &&
-    stateMachine.steps[stateMachine.current]?.next?.length
-  ) {
+  while (continueLoop) {
     const currentStep = stateMachine.steps[stateMachine.current];
     if (stateMachine.current === token?.type && currentStep?.handler) {
       continueLoop = currentStep.handler(
         stateMachine.state,
         block as TBlockType,
-        token.value as TValue
+        token.value as TValue,
       );
     }
 
     token = lexer.next();
+    console.log("next token:", token);
     if (!token) break;
 
     if (token.type === "ws" || token.type === "comment") {

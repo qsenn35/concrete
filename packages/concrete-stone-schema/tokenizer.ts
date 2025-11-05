@@ -20,6 +20,7 @@ export function tokenize(input: string) {
 
     if (token.type === "type_def") {
       const typeResult = handleTypeDef(lexer);
+      //console.log("type result:", typeResult);
     }
 
     if (token.type === "schema_def") {
@@ -27,7 +28,7 @@ export function tokenize(input: string) {
 
       for (const prop in schemaResult.def.shape) {
         const obj = schemaResult.def.shape[prop];
-        console.log(prop, obj);
+        console.log("?", prop, obj);
       }
     }
   }

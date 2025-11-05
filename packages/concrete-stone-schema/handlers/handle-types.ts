@@ -11,23 +11,28 @@ import { handleBlock } from "./handle-blocks.ts";
 const handleIdentifier = (
   _state: StateMachine["state"],
   block: TypeDefContext,
-  value: string
+  value: string,
 ) => {
+  console.log("identifier:", block, value);
   if (block.name === undefined) {
     block.name = value;
-    return;
+    return true;
   }
-  if (typeof value !== "string") return;
+  if (typeof value !== "string") return true;
 
   block.descriptors.push(value);
+  return true;
 };
 
 const handleFormat = (
   _state: StateMachine["state"],
   block: TypeDefContext,
-  value: FormatLexerResult
+  value: FormatLexerResult,
 ) => {
+  console.log("format hit", block, value);
   block.formats.push(value);
+
+  return true;
 };
 
 export function handleTypeDef(lexer: MooLexer) {
@@ -41,7 +46,7 @@ export function handleTypeDef(lexer: MooLexer) {
   const handler: StateMachineStepHandler<TypeDefContext, FormatLexerResult> = (
     state: StateMachine["state"],
     block: TypeDefContext,
-    value: string | number | boolean | FormatLexerResult
+    value: string | number | boolean | FormatLexerResult,
   ) => {
     if (typeof value === "string") return handleIdentifier(state, block, value);
 
@@ -84,5 +89,7 @@ export function handleTypeDef(lexer: MooLexer) {
   const typeBlock = handleBlock(lexer, block, stateMachine) as TypeDefContext;
   const zodType = createZodObject(typeBlock);
 
+  //console.log(typeBlock);
+  //console.log(zodType);
   return zodType;
 }
