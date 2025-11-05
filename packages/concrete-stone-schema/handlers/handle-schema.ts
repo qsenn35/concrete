@@ -1,4 +1,3 @@
-import { ZodObject } from "zod/v4";
 import {
   MooLexer,
   StateMachine,
@@ -13,7 +12,7 @@ import { handleBlock } from "./handle-blocks.ts";
 function setByPath<T extends Record<string, any>>(
   obj: T,
   path: string,
-  value: any
+  value: any,
 ): T {
   const keys = path.split(".");
   let current: Record<string, any> = obj;
@@ -36,7 +35,7 @@ function setByPath<T extends Record<string, any>>(
 
 function getByPath<T extends Record<string, any>, R = any>(
   obj: T,
-  path: string
+  path: string,
 ): R | undefined {
   const keys = path.split(".");
   let current: any = obj;
@@ -54,11 +53,11 @@ function getByPath<T extends Record<string, any>, R = any>(
 function handlePropIdentifier(
   state: StateMachine["state"],
   block: SchemaDefBlock,
-  value: string
+  value: string,
 ) {
   const prop = value.substring(
     0,
-    value.length
+    value.length,
   ) as keyof SchemaDefBlock["props"];
 
   if (!state.last_nested) {
@@ -87,7 +86,7 @@ function handlePropIdentifier(
 function handleIdentifier(
   state: StateMachine["state"],
   block: SchemaDefBlock,
-  value: string
+  value: string,
 ) {
   if (!block.name) {
     block.name = value;
@@ -112,7 +111,7 @@ function handleIdentifier(
 function handlePropDirective(
   state: StateMachine["state"],
   block: SchemaDefBlock,
-  value: string
+  value: string,
 ) {
   const scope = value.substring(1, value.length);
   block.scopes[scope] = {
@@ -126,7 +125,7 @@ function handlePropDirective(
 function handleNestedSchema(
   state: StateMachine["state"],
   block: SchemaDefBlock,
-  value: string
+  value: string,
 ) {
   if (state.last_nested) {
     setByPath(block, `${state.last_nested}.props.${value}`, {
@@ -152,7 +151,7 @@ function handleNestedSchema(
 function handleFormat(
   state: StateMachine["state"],
   block: SchemaDefBlock,
-  value: FormatLexerResult
+  value: FormatLexerResult,
 ) {
   const lastProp = state.last_property as string;
   const lastNested = state.last_nested as string;
@@ -172,7 +171,7 @@ function handleFormat(
 function handleCloseCurly(
   state: StateMachine["state"],
   _block: SchemaDefBlock,
-  _value: string
+  _value: string,
 ) {
   if (!state.last_nested) {
     return false;

@@ -1,8 +1,11 @@
-import z from "zod/v4";
 import { FormatLexerResult, SchemaDefBlock, TypeDefContext } from "../types.ts";
-import { ZodAny } from "zod/v4";
+import { z, ZodAny } from "zod/v4";
 
 type ZodFactoryKey = keyof typeof z;
+
+export function convertToJSONSchema(obj: ZodSchemaDefObject) {
+  return z.toJSONSchema(obj);
+}
 
 export function getZodTypeMethod(source: typeof z, key: ZodFactoryKey) {
   const fn = source[key];
@@ -60,7 +63,7 @@ export function handleSchemaDef() {}
 
 export function createZodTypeSchema(
   block: TypeDefContext,
-  initialZod?: ZodAny
+  initialZod?: ZodAny,
 ): ZodAny | undefined {
   const { descriptors, formats } = block;
   const zodObject =

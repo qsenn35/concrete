@@ -1,8 +1,8 @@
-import { ZodObject } from "zod/v4";
 import { handleSchemaDef } from "./handlers/handle-schema.ts";
 import { handleTypeDef } from "./handlers/handle-types.ts";
 import { lexer } from "./lexer.ts";
 import { LexerContext } from "./types.ts";
+import { convertToJSONSchema } from "./handlers/create-zod-schemas.ts";
 
 export function tokenize(input: string) {
   lexer.reset(input);
@@ -20,15 +20,16 @@ export function tokenize(input: string) {
 
     if (token.type === "type_def") {
       const typeResult = handleTypeDef(lexer);
-      //console.log("type result:", typeResult);
+      // const zodResult = z.toJSONSchema(typeResult);
+      // console.log(zodResult);
     }
 
     if (token.type === "schema_def") {
-      const schemaResult = handleSchemaDef(lexer) as ZodObject;
-
-      for (const prop in schemaResult.def.shape) {
-        const obj = schemaResult.def.shape[prop];
-        console.log("?", prop, obj);
+      const schemaResult = handleSchemaDef(lexer);
+      console.log("schema result", schemaResult);
+      if (schemaResult) {
+        const zodResult = convertToJSONSchema(schemaResult);
+        console.log(zodResult);
       }
     }
   }

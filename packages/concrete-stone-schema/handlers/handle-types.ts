@@ -89,7 +89,5 @@ export function handleTypeDef(lexer: MooLexer) {
   const typeBlock = handleBlock(lexer, block, stateMachine) as TypeDefContext;
   const zodType = createZodObject(typeBlock);
 
-  //console.log(typeBlock);
-  //console.log(zodType);
   return zodType;
 }
