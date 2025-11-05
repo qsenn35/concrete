@@ -1,7 +1,6 @@
 import z from "zod/v4";
 import { FormatLexerResult, SchemaDefBlock, TypeDefContext } from "../types.ts";
 import { ZodAny } from "zod/v4";
-import { keyof } from "zod/v4";
 
 type ZodFactoryKey = keyof typeof z;
 
